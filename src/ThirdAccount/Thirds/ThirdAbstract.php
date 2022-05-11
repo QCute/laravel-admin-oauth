@@ -22,7 +22,7 @@ abstract class ThirdAbstract implements ThirdInterface
     public function __construct(string $source)
     {
         $this->source = $source;
-        $this->config = config('admin-oauth.services.' . \Str::snake($source));
+        $this->config = config('admin-oauth.services.' . $source);
         $this->setRedirectUrl(admin_url('/oauth/callback?source=' . $source));
     }
 

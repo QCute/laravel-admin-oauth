@@ -16,6 +16,9 @@ class ThirdAccount
     const PLATFORMS = [
         'WorkWechat',
         'DingDing',
+        'Lark',
+        'Wechat',
+        'QQ',
     ];
 
     /**
@@ -26,6 +29,9 @@ class ThirdAccount
     const SOURCES = [
         'WorkWechat' => '企业微信',
         'DingDing'   => '钉钉',
+        'Lark'   => '飞书',
+        'Wechat'   => '微信',
+        'QQ'   => 'QQ',
     ];
 
     /**

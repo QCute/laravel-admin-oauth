@@ -4,22 +4,22 @@ namespace Cann\Admin\OAuth\ThirdAccount\Thirds;
 
 use Cann\Admin\OAuth\Helpers\ApiHelper;
 
-class DingDing extends ThirdAbstract
+class QQ extends ThirdAbstract
 {
-    const AUTHORIZE_URL = 'https://login.dingtalk.com/oauth2/auth?';
-    const ACCESS_TOKEN_URL = 'https://api.dingtalk.com/v1.0/oauth2/userAccessToken';
-    const USER_INFO_URL = 'https://api.dingtalk.com/v1.0/contact/users/me';
+    const AUTHORIZE_URL = 'https://graph.qq.com/oauth2.0/authorize?';
+    const ACCESS_TOKEN_URL = 'https://graph.qq.com/oauth2.0/token?';
+    const USER_INFO_URL = 'https://graph.qq.com/oauth2.0/me?';
 
     protected $redirectUrl;
 
     public function getPlatform()
     {
-        return 'DingDing';
+        return 'QQ';
     }
 
     public function getPlatformChn()
     {
-        return '钉钉';
+        return 'QQ';
     }
 
     public function getAuthorizeUrl(array $params)
@@ -27,8 +27,8 @@ class DingDing extends ThirdAbstract
         $paramsStr = http_build_query([
             'client_id'     => $this->config['app_id'],
             'redirect_uri'  => $this->redirectUrl,
-            'scope'         => 'openid',
             'response_type' => 'code',
+            'scope'         => 'get_user_info',
             'state'         => $this->generateState(),
         ]);
 
@@ -45,10 +45,10 @@ class DingDing extends ThirdAbstract
 
         $tokenInfo = $this->getAccessToken($params);
 
-        $headers = [
-            'x-acs-dingtalk-access-token' => $tokenInfo['accessToken'],
+        $params = [
+            'access_token' => $tokenInfo['access_token'],
         ];
-        $userInfo = $this->request(self::USER_INFO_URL, [], 'GET', 'JSON', $headers);
+        $userInfo = $this->request(self::USER_INFO_URL, $params);
 
         return [
             'id'   => $userInfo[$this->config['id']],
@@ -56,15 +56,16 @@ class DingDing extends ThirdAbstract
         ];
     }
 
-    private function getAccessToken($params)
+    private function getAccessToken(array $params)
     {
         $params = [
-            'grant_type'    => 'authorization_code',
             'client_id'     => $this->config['app_id'],
             'client_secret' => $this->config['app_secret'],
+            'redirect_uri'  => $this->redirectUrl,
             'code'          => $params['code'],
+            'grant_type'    => 'authorization_code'
         ];
-        return $this->request(self::ACCESS_TOKEN_URL, $params, 'POST', 'JSON');
+        return $this->request(self::ACCESS_TOKEN_URL, $params);
     }
 
     private function request(string $url, array $params, string $method = 'GET', string $format = null, array $headers = [])

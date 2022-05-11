@@ -4,30 +4,30 @@ namespace Cann\Admin\OAuth\ThirdAccount\Thirds;
 
 use Cann\Admin\OAuth\Helpers\ApiHelper;
 
-class DingDing extends ThirdAbstract
+class Wechat extends ThirdAbstract
 {
-    const AUTHORIZE_URL = 'https://login.dingtalk.com/oauth2/auth?';
-    const ACCESS_TOKEN_URL = 'https://api.dingtalk.com/v1.0/oauth2/userAccessToken';
-    const USER_INFO_URL = 'https://api.dingtalk.com/v1.0/contact/users/me';
+    const AUTHORIZE_URL = 'https://open.weixin.qq.com/connect/qrconnect?';
+    const ACCESS_TOKEN_URL = 'https://api.weixin.qq.com/sns/oauth2/access_token?';
+    const USER_INFO_URL = 'https://api.weixin.qq.com/sns/userinfo?';
 
     protected $redirectUrl;
 
     public function getPlatform()
     {
-        return 'DingDing';
+        return 'Wechat';
     }
 
     public function getPlatformChn()
     {
-        return '钉钉';
+        return '微信';
     }
 
     public function getAuthorizeUrl(array $params)
     {
         $paramsStr = http_build_query([
-            'client_id'     => $this->config['app_id'],
+            'appid'         => $this->config['app_id'],
             'redirect_uri'  => $this->redirectUrl,
-            'scope'         => 'openid',
+            'scope'         => 'snsapi_login',
             'response_type' => 'code',
             'state'         => $this->generateState(),
         ]);
@@ -45,10 +45,11 @@ class DingDing extends ThirdAbstract
 
         $tokenInfo = $this->getAccessToken($params);
 
-        $headers = [
-            'x-acs-dingtalk-access-token' => $tokenInfo['accessToken'],
+        $params = [
+            'access_token' => $tokenInfo['access_token'],
+            'openid'       => $tokenInfo['openid'],
         ];
-        $userInfo = $this->request(self::USER_INFO_URL, [], 'GET', 'JSON', $headers);
+        $userInfo = $this->request(self::USER_INFO_URL, $params);
 
         return [
             'id'   => $userInfo[$this->config['id']],
@@ -56,15 +57,15 @@ class DingDing extends ThirdAbstract
         ];
     }
 
-    private function getAccessToken($params)
+    private function getAccessToken(array $params)
     {
         $params = [
-            'grant_type'    => 'authorization_code',
-            'client_id'     => $this->config['app_id'],
-            'client_secret' => $this->config['app_secret'],
-            'code'          => $params['code'],
+            'appid'      => $this->config['app_id'],
+            'secret'     => $this->config['app_secret'],
+            'code'       => $params['code'],
+            'grant_type' => 'authorization_code',
         ];
-        return $this->request(self::ACCESS_TOKEN_URL, $params, 'POST', 'JSON');
+        return $this->request(self::ACCESS_TOKEN_URL, $params);
     }
 
     private function request(string $url, array $params, string $method = 'GET', string $format = null, array $headers = [])

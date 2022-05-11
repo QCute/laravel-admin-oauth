@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="{{ admin_asset("vendor/laravel-admin/font-awesome/css/font-awesome.min.css") }}">
     <!-- Theme style -->
     <link rel="stylesheet" href="{{ admin_asset("vendor/laravel-admin/AdminLTE/dist/css/AdminLTE.min.css") }}">
-
+    <script src="https://sf3-cn.feishucdn.com/obj/static/lark/passport/qrcode/LarkSSOSDKWebQRCode-1.0.1.js"></script>
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -23,22 +23,6 @@
 
 <body class="hold-transition login-page" style="height: 100vh; display: flex; align-items: center; background: url({{config('admin.login_background_image') ?: '/vendor/laravel-admin-oauth/img/background.jpg'}}) no-repeat;background-size: cover;">
 
-    <div class="login-box" id="login-box-oauth" style="min-width: 260px; width: auto; opacity: 0.8; display: {{ config('admin-oauth.allowed_password_login') ? 'none' : 'block' }}">
-
-        <div class="login-logo">
-            <b style="color:white; font-size: 20px; ">{{config('admin.name')}}</b>
-        </div>
-
-        <div class="row">
-            @foreach($sources as $source => $sourceName)
-                <div class="col-xs-12" style="margin-bottom: 10px;">
-                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                    <a href="{{ admin_url('/oauth/authorize?source=' . $source) }}" class="btn btn-primary btn-block btn-flat">{{ $sourceName }}授权登录</a>
-                </div>
-            @endforeach
-        </div>
-    </div>
-
     @if (config('admin-oauth.allowed_password_login'))
 
         <div class="login-box" id="login-box-password" style="opacity: 0.8;">
@@ -47,7 +31,7 @@
                 <b style="color:white; font-size: 20px; ">{{config('admin.name')}}</b>
             </div>
 
-            <div class="login-box-body" style="border-radius: 10px">
+            <div class="login-box-body" style="box-shadow: 0px 20px 80px 0px rgb(0 0 0 / 30%);">
                 <p class="login-box-msg">{{ trans('admin.login') }}</p>
 
                 <form action="{{ admin_base_path('auth/login') }}" method="post">
@@ -77,26 +61,27 @@
                         <div class="col-xs-4"></div>
                         <div class="col-xs-4">
                             <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="btn btn-primary btn-block btn-flat" style="border-radius: 5px">{{ trans('admin.login') }}</button>
+                            <button type="submit" class="btn btn-primary btn-block btn-flat">{{ trans('admin.login') }}</button>
                         </div>
-                        <div class="col-xs-4" style="margin-top: 10px;">
-                            <a href="javascript:;" id="oauth-btn" style="float: right;">授权登录</a>
+                    </div>
+                    <div class="row" style="margin-top: 20px; text-align: center;">
+                        第三方账号登录
+                    </div>
+                    <div class="row" style="margin-top: 20px; text-align: center;">
+                        @foreach($sources as $source => $sourceName)
+                        <div class="col-md-2">
+                            <a href="{{ admin_url('/oauth/authorize?source=' . $source) }}" style="">
+                                <img src="{{ url('/vendor/laravel-admin-oauth/img/' . $source . '.png') }}" title="{{ $sourceName }}">
+                            </a>
                         </div>
+                        @endforeach
                     </div>
                 </form>
             </div>
         </div>
 
-        <!-- jQuery 2.1.4 -->
-        <script src="{{ admin_asset("vendor/laravel-admin/AdminLTE/plugins/jQuery/jQuery-2.1.4.min.js")}} "></script>
-
         <script type="text/javascript">
-            $(function () {
-                $('#oauth-btn').click(function () {
-                    $('#login-box-password').hide();
-                    $('#login-box-oauth').show();
-                });
-            })
+
         </script>
     @endif
 </body>

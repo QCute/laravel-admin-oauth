@@ -4,22 +4,22 @@ namespace Cann\Admin\OAuth\ThirdAccount\Thirds;
 
 use Cann\Admin\OAuth\Helpers\ApiHelper;
 
-class DingDing extends ThirdAbstract
+class Lark extends ThirdAbstract
 {
-    const AUTHORIZE_URL = 'https://login.dingtalk.com/oauth2/auth?';
-    const ACCESS_TOKEN_URL = 'https://api.dingtalk.com/v1.0/oauth2/userAccessToken';
-    const USER_INFO_URL = 'https://api.dingtalk.com/v1.0/contact/users/me';
+    const AUTHORIZE_URL = 'https://passport.feishu.cn/suite/passport/oauth/authorize?';
+    const ACCESS_TOKEN_URL = 'https://passport.feishu.cn/suite/passport/oauth';
+    const USER_INFO_URL = 'https://passport.feishu.cn/suite/passport/oauth';
 
     protected $redirectUrl;
 
     public function getPlatform()
     {
-        return 'DingDing';
+        return 'Lark';
     }
 
     public function getPlatformChn()
     {
-        return '钉钉';
+        return '飞书';
     }
 
     public function getAuthorizeUrl(array $params)
@@ -27,12 +27,11 @@ class DingDing extends ThirdAbstract
         $paramsStr = http_build_query([
             'client_id'     => $this->config['app_id'],
             'redirect_uri'  => $this->redirectUrl,
-            'scope'         => 'openid',
             'response_type' => 'code',
             'state'         => $this->generateState(),
         ]);
 
-        return self::AUTHORIZE_URL . $paramsStr;
+        return 'https://passport.feishu.cn/suite/passport/sso/qr?goto=' . self::AUTHORIZE_URL . $paramsStr;
     }
 
     public function getThirdUser(array $params)
@@ -42,14 +41,16 @@ class DingDing extends ThirdAbstract
         ])->validate();
 
         $this->validateState($params['state']);
-
+        
+        // access token
         $tokenInfo = $this->getAccessToken($params);
-
+        
+        // use info
         $headers = [
-            'x-acs-dingtalk-access-token' => $tokenInfo['accessToken'],
+            'Authorization' => $tokenInfo['token_type'] . ' '. $tokenInfo['access_token'],
         ];
         $userInfo = $this->request(self::USER_INFO_URL, [], 'GET', 'JSON', $headers);
-
+        
         return [
             'id'   => $userInfo[$this->config['id']],
             'name' => $userInfo[$this->config['name']],
@@ -59,15 +60,16 @@ class DingDing extends ThirdAbstract
     private function getAccessToken($params)
     {
         $params = [
-            'grant_type'    => 'authorization_code',
             'client_id'     => $this->config['app_id'],
             'client_secret' => $this->config['app_secret'],
             'code'          => $params['code'],
+            'redirect_uri'  => $this->redirectUrl,
+            'grant_type'    => 'authorization_code',
         ];
         return $this->request(self::ACCESS_TOKEN_URL, $params, 'POST', 'JSON');
     }
 
-    private function request(string $url, array $params, string $method = 'GET', string $format = null, array $headers = [])
+    private function request(string $url, array $params, string $method = 'GET', string $format = null, $headers = [])
     {
         $response = ApiHelper::guzHttpRequest($url, $params, $method, $format, $headers);
 
